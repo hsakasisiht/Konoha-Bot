@@ -1,0 +1,38 @@
+{
+  "name": "konoha-bot",
+  "version": "1.2.4",
+  "description": "Konoha Bot, an intelligent chatbot for various tasks",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "setup": "node setup.js",
+    "container": "node start.js"
+  },
+  "dependencies": {
+    "@distube/ytdl-core": "^4.16.8",
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "^6.17.16",
+    "awesome-phonenumber": "^5.10.0",
+    "axios": "^1.8.4",
+    "chalk": "^4.1.2",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.3.1",
+    "emoji-regex": "^10.3.0",
+    "file-type": "^16.5.4",
+    "fluent-ffmpeg": "^2.1.3",
+    "libphonenumber-js": "^1.10.51",
+    "moment-timezone": "^0.5.44",
+    "node-cache": "^5.1.2",
+    "node-fetch": "^3.3.2",
+    "node-webpmux": "3.2.1",
+    "path": "^0.12.7",
+    "pino": "^8.17.1",
+    "qrcode-terminal": "^0.12.0",
+    "readline": "^1.3.0",
+    "sharp": "^0.32.1",
+    "youtube-yts": "^2.0.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "packageManager": "yarn@1.22.22"
+}
