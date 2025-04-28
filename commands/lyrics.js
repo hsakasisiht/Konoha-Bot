@@ -17,9 +17,20 @@ module.exports = {
             // Get song name from arguments
             const text = args.join(" ");
             
+            // Check if user wants to test the Genius API connectivity
+            if (text === "test-api") {
+                await m.reply("🧪 *Testing Genius API connection...*");
+                try {
+                    const testResponse = await genius.testApiConnection();
+                    return m.reply(`✅ *Genius API Test Results:*\n\n${testResponse}`);
+                } catch (error) {
+                    return m.reply(`❌ *Genius API Test Failed:*\n\n${error.message}`);
+                }
+            }
+            
             // Check if song name is provided
             if (!text) {
-                return m.reply(`*🎵 Lyrics Command*\n\n❌ Please provide a song name.\n\n*Usage:* ${prefix}lyrics <song name>\n*Example:* ${prefix}lyrics Shape of You\n\n💡 *Tip:* For better results, include both artist and song title: "${prefix}lyrics Ed Sheeran - Shape of You"`);
+                return m.reply(`*🎵 Lyrics Command*\n\n❌ Please provide a song name.\n\n*Usage:* ${prefix}lyrics <song name>\n*Example:* ${prefix}lyrics Shape of You\n\n💡 *Tip:* For better results, include both artist and song title: "${prefix}lyrics Ed Sheeran - Shape of You"\n\n🧪 *Debug:* Use "${prefix}lyrics test-api" to check API connectivity`);
             }
 
             // Show searching status with a more engaging message
