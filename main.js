@@ -135,6 +135,10 @@ const handleMessages = async (sock, chatUpdate, isNonGroupMessage = false) => {
                 m.reply(`Error executing command: ${e.message}`);
             }
         }
+
+        switch (true) {
+            // ...existing cases...
+        }
     } catch (err) {
         console.error("Error in handleMessages:", err);
     }
