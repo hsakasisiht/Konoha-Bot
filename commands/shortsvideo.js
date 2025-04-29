@@ -53,17 +53,37 @@ module.exports = {
             // Download based on platform
             if (isYouTube) {
                 try {
+                    // Update status for YouTube shorts
+                    await sock.sendMessage(m.chat, {
+                        text: `🔍 YouTube video detected! Fetching info...`,
+                        edit: statusMsg.key
+                    });
+                    
                     // Get video info
                     const info = await ytdl.getInfo(videoUrl);
                     videoInfo.title = info.videoDetails.title;
                     videoInfo.thumbnail = info.videoDetails.thumbnails[0].url;
                     
+                    // Update status to show download progress
+                    await sock.sendMessage(m.chat, {
+                        text: `📥 Downloading "${videoInfo.title}"...`,
+                        edit: statusMsg.key
+                    });
+                    
+                    // Check if it's a short
+                    const isShort = videoUrl.includes('youtube.com/shorts/') || videoUrl.includes('youtu.be/shorts/');
+                    
                     // Download video
                     await ytdl.mp4(videoUrl, outputPath);
+                    
+                    // Verify the file exists and has content
+                    if (!fs.existsSync(outputPath) || fs.statSync(outputPath).size === 0) {
+                        throw new Error('Video download failed - file is missing or empty');
+                    }
                 } catch (err) {
                     console.error("YouTube download error:", err);
                     return sock.sendMessage(m.chat, {
-                        text: `❌ Failed to download video: ${err.message}`,
+                        text: `❌ Failed to download video: ${err.message}\n\nPlease try again later or with a different link.`,
                         edit: statusMsg.key
                     });
                 }
@@ -81,9 +101,17 @@ module.exports = {
             
             // Update status before sending
             await sock.sendMessage(m.chat, {
-                text: `✅ Download complete! Sending video...`,
+                text: `✅ Download complete! Checking video...`,
                 edit: statusMsg.key
             });
+            
+            // Check if the file was actually created and has content
+            if (!fs.existsSync(outputPath) || fs.statSync(outputPath).size === 0) {
+                return sock.sendMessage(m.chat, {
+                    text: `❌ Failed to download video: The file was not created properly.`,
+                    edit: statusMsg.key
+                });
+            }
             
             // Get thumbnail if available
             let thumbBuffer;
@@ -95,32 +123,51 @@ module.exports = {
                 console.log("Error getting thumbnail:", err);
             }
             
-            // Send the video
-            await sock.sendMessage(m.chat, {
-                video: fs.readFileSync(outputPath),
-                caption: `✅ ${videoInfo.title}`,
-                mimetype: 'video/mp4',
-                fileName: `${videoInfo.title || "video"}.mp4`,
-                contextInfo: thumbBuffer ? {
-                    externalAdReply: {
-                        title: videoInfo.title || "Downloaded Video",
-                        body: global.botname || "WhatsApp Bot",
-                        thumbnail: thumbBuffer,
-                        mediaType: 2,
-                        mediaUrl: videoUrl
-                    }
-                } : undefined
-            });
-            
-            // Final update to the status message
-            await sock.sendMessage(m.chat, {
-                text: `✅ Video sent successfully!`,
-                edit: statusMsg.key
-            });
+            try {
+                // Update status before sending
+                await sock.sendMessage(m.chat, {
+                    text: `✅ Video ready! Sending now...`,
+                    edit: statusMsg.key
+                });
+                
+                // Read the file with a try-catch to handle any potential issues
+                const videoBuffer = fs.readFileSync(outputPath);
+                
+                // Send the video
+                await sock.sendMessage(m.chat, {
+                    video: videoBuffer,
+                    caption: `✅ ${videoInfo.title}`,
+                    mimetype: 'video/mp4',
+                    fileName: `${videoInfo.title || "video"}.mp4`,
+                    contextInfo: thumbBuffer ? {
+                        externalAdReply: {
+                            title: videoInfo.title || "Downloaded Video",
+                            body: global.botname || "WhatsApp Bot",
+                            thumbnail: thumbBuffer,
+                            mediaType: 2,
+                            mediaUrl: videoUrl
+                        }
+                    } : undefined
+                });
+                
+                // Final update to the status message
+                await sock.sendMessage(m.chat, {
+                    text: `✅ Video sent successfully!`,
+                    edit: statusMsg.key
+                });
+            } catch (fileError) {
+                console.error("Error sending video file:", fileError);
+                await sock.sendMessage(m.chat, {
+                    text: `❌ Error sending video: ${fileError.message}`,
+                    edit: statusMsg.key
+                });
+            }
             
             // Clean up the temporary file
             try {
-                fs.unlinkSync(outputPath);
+                if (fs.existsSync(outputPath)) {
+                    fs.unlinkSync(outputPath);
+                }
             } catch (err) {
                 console.log("Error deleting temp file:", err);
             }
