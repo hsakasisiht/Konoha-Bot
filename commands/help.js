@@ -57,12 +57,26 @@ module.exports = {
         const mediaCommands = [];
         const gameCommands = [];
         
+        // Track processed commands to prevent duplicates
+        const processedCommands = new Set();
+        
         // Categorize commands based on naming conventions or internal properties
+        // FIXED: Modified categorization logic to prevent commands from appearing in multiple categories
         commandFiles.forEach(file => {
             const command = require(path.join(commandsPath, file));
             const cmdName = command.name || file.replace('.js', '');
+            
+            // Skip if this command has already been processed
+            if (processedCommands.has(cmdName)) {
+                return;
+            }
+            
+            // Mark this command as processed
+            processedCommands.add(cmdName);
+            
             const cmdDescription = command.description || 'No description available';
             
+            // Check categories in priority order so each command only goes into one category
             if (['tictactoe', 'game', '8ball'].some(g => cmdName.includes(g))) {
                 gameCommands.push({ name: cmdName, description: cmdDescription });
             }
